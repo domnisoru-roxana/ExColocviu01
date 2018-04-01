@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">PracticalTest01</string>
+    <string name="zero">0</string>
+    <string name="press_me_button">PRESS ME!</string>
+    <string name="press_me_too_button">PRESS ME, TOO!</string>
+</resources>
