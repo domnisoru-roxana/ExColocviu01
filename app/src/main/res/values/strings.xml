@@ -3,4 +3,6 @@
     <string name="zero">0</string>
     <string name="press_me_button">PRESS ME!</string>
     <string name="press_me_too_button">PRESS ME, TOO!</string>
+    <string name="save">SAVE</string>
+    <string name="cancel">CANCEL</string>
 </resources>
