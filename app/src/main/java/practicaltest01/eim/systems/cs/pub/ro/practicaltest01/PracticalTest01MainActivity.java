@@ -1,8 +1,12 @@
 package practicaltest01.eim.systems.cs.pub.ro.practicaltest01;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -13,37 +17,57 @@ public class PracticalTest01MainActivity extends AppCompatActivity {
     TextView first_text_view;
     TextView second_text_view;
 
+    int serviceStatus = Constants.SERVICE_STOPPED;
+
+    private MessageBroadcastReceiver messageBroadcastReceiver = new MessageBroadcastReceiver();
+    private IntentFilter intentFilter = new IntentFilter();
+
+    class MessageBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(Constants.BROADCAST_RECEIVER_TAG, intent.getStringExtra(Constants.BROADCAST_RECEIVER_EXTRA));
+        }
+    }
+
     class ButtonOnClickListener implements View.OnClickListener {
 
         String text, text2;
         Integer value, value2;
         @Override
         public void onClick(View view) {
+
+            text = first_text_view.getText().toString();
+            value = Integer.parseInt(text);
+
+            text2 = second_text_view.getText().toString();
+            value2 = Integer.parseInt(text2);
+
             switch (((Button)view).getId()) {
                 case R.id.press_me_button:
-                    text = first_text_view.getText().toString();
-                    value = Integer.parseInt(text);
                     value++;
                     first_text_view.setText(value.toString());
                     break;
                 case R.id.press_me_too_button:
-                    text2 = second_text_view.getText().toString();
-                    value2 = Integer.parseInt(text2);
                     value2++;
                     second_text_view.setText(value2.toString());
                     break;
                 case R.id.secondary_activity_button:
                     Intent intent = new Intent(getApplicationContext(), PracticalTest01SecondaryActivity.class);
-
-                    text = first_text_view.getText().toString();
-                    value = Integer.parseInt(text);
-                    text2 = second_text_view.getText().toString();
-                    value2 = Integer.parseInt(text2);
-
                     intent.putExtra(Constants.SUM_KEY, value + value2);
 
                     startActivityForResult(intent, Constants.SECONDARY_ACTIVITY_REQUEST_CODE);
+                    break;
             }
+
+            if (value + value2 > Constants.LIMIT_VALUE && serviceStatus == Constants.SERVICE_STOPPED) {
+                Intent intent = new Intent(getApplicationContext(), PracticalTest01Service.class);
+                intent.putExtra(Constants.FIRST_NUM_KEY, value);
+                intent.putExtra(Constants.SECOND_NUM_KEY, value2);
+                getApplicationContext().startService(intent);
+                serviceStatus = Constants.SERVICE_STARTED;
+            }
+
         }
     }
     @Override
@@ -78,6 +102,29 @@ public class PracticalTest01MainActivity extends AppCompatActivity {
             first_text_view.setText(String.valueOf(0));
             second_text_view.setText(String.valueOf(0));
         }
+
+        for (int index = 0; index < Constants.actionTypes.length; index++) {
+            intentFilter.addAction(Constants.actionTypes[index]);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(messageBroadcastReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        unregisterReceiver(messageBroadcastReceiver);
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Intent intent = new Intent(this, PracticalTest01Service.class);
+        stopService(intent);
+        super.onDestroy();
     }
 
     @Override
